@@ -1,39 +1,48 @@
-import * as React from 'react';
-import {useReducer} from "react";
+import React, {useState} from 'react'
+import { Navbar } from './components/NavBar';
+import { TodoForm } from './components/TodoForm';
+import { TodoList } from './components/TodoList';
+import { ITodo } from './interfaces';
 
-import {todoReducer} from "./reducers/todoReducer";
-import {Action, State, ContextState} from "./types/stateType";
-import NewTask from "./components/NewTask";
-import TasksList from "./components/TasksList";
+const App: React.FC = () => {
+    const [todos, setTodos] = useState<ITodo[]>([])
 
-export const initialState: State = {
-  newTask: '',
-  tasks: []
-}
 
-// <Partial> allows you to create the context without default values.
-export const ContextApp = React.createContext<Partial<ContextState>>({});
+    //Создаем дело
+    const addHandler = (title:string) => {
+        const newTodo = {
+            title: title,
+            id: Date.now(),
+            completed: false,
+        }
+        // setTodos([newTodo, ...todos])
+        setTodos(prev => [newTodo, ...prev])
+    }
 
-const App:  React.FC = () => {
+    //обработка статуса выполнения дела
+    const toggleHandler = (id: number) => {
+       setTodos(prev => prev.map(todo => {
+        if (todo.id === id) {
+            todo.completed = !todo.completed
+        }
+        return todo  
+       })) 
+    }
 
-  const [state, changeState] = useReducer<React.Reducer<State, Action>>(todoReducer, initialState);
+    // Удаление дела
+    const removeHandler = (id: number) => {
+        setTodos(prev => prev.filter(todo => todo.id !== id))
+    }
 
-  const ContextState: ContextState = {
-      state,
-      changeState
-  };
+    return  (<>
+    <Navbar />
+    <div className='container'>
+        <TodoForm onAdd={addHandler}/>
 
-  return (
-      <>
-          <h1>
-              React + TypeScript
-          </h1>
-          <ContextApp.Provider value={ContextState}>
-              <NewTask />
-              <TasksList />
-          </ContextApp.Provider>
-      </>
-  )
+        <TodoList todos={todos} onToggle={toggleHandler} onRemove={removeHandler}/>
+    </div>
+    </>
+    )
 }
 
 export default App;
